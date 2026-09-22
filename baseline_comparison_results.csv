@@ -1,0 +1,6 @@
+Model Architecture,AUROC,AUPRC,Recall,Precision,F1,Accuracy
+Logistic Regression (SMOTE),0.7031,0.0803,0.6008,0.0429,0.0801,0.7007
+Random Forest (SMOTE),0.7391,0.0879,0.4156,0.1032,0.1653,0.9090
+HistGradientBoosting (SMOTE),0.7326,0.0880,0.3669,0.1159,0.1760,0.9255
+Advanced XGBoost (6h),0.8003,0.1122,0.5865,0.0744,0.1321,0.8327
+Advanced XGBoost (12h),0.8035,0.1153,0.6084,0.0727,0.1298,0.8230

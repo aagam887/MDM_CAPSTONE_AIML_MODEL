@@ -1,0 +1,30 @@
+{
+  "n_features": 84,
+  "n_shap_samples": 10000,
+  "base_6h": 0.04846937954425812,
+  "base_12h": 0.029093770310282707,
+  "top10_features_6h": [
+    "ICULOS",
+    "HospAdmTime",
+    "Unit1",
+    "Hour",
+    "Age",
+    "Resp_mean3h",
+    "SBP_min3h",
+    "SBP_max3h",
+    "Temp_min3h",
+    "Resp_min3h"
+  ],
+  "top10_features_12h": [
+    "ICULOS",
+    "HospAdmTime",
+    "Unit1",
+    "Age",
+    "Hour",
+    "SBP_min3h",
+    "Resp_min3h",
+    "SBP_max3h",
+    "Resp_std3h",
+    "O2Sat_mean3h"
+  ]
+}
