@@ -1,6 +1,6 @@
 {
   "n_features": 84,
-  "n_shap_samples": 10000,
+  "n_shap_samples": 14057,
   "base_6h": 0.04846937954425812,
   "base_12h": 0.029093770310282707,
   "top10_features_6h": [

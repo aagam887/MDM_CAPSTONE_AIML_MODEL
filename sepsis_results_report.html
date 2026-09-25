@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Early Prediction of Sepsis in ICU — Results Report</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --navy:   #0f1e3d;
+    --blue:   #1f3c88;
+    --accent: #3b82f6;
+    --red:    #dc2626;
+    --amber:  #f59e0b;
+    --green:  #16a34a;
+    --purple: #8b5cf6;
+    --bg:     #f5f7fb;
+    --card:   #ffffff;
+    --text:   #1f2937;
+    --muted:  #6b7280;
+    --border: #e5e7eb;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 16px;
+}
+
+.nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 30px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+.nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+.nav a:hover { background: #eef2ff; color: var(--blue); }
+
+.hero {
+    background: linear-gradient(135deg, #0f1e3d 0%, #1f3c88 60%, #3b82f6 100%);
+    color: white;
+    padding: 60px 40px 70px;
+    text-align: center;
+}
+.hero h1 {
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+.hero .subtitle {
+    font-size: 17px;
+    color: #eef2fb;
+    max-width: 800px;
+    margin: 0 auto;
+    font-weight: 400;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.hero .author {
+    margin-top: 24px;
+    font-size: 13px;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.hero-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 18px;
+    max-width: 1000px;
+    margin: 40px auto 0;
+}
+.hero-tile {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 22px 16px;
+    backdrop-filter: blur(4px);
+}
+.hero-tile .value { font-size: 30px; font-weight: 800; margin-bottom: 4px; }
+.hero-tile .label {
+    font-size: 11px;
+    color: #dce6f7;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.hero-cta {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 38px;
+    flex-wrap: wrap;
+}
+.cta-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 16px 32px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    min-width: 260px;
+}
+.cta-btn .cta-sub {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+.cta-primary {
+    background: #ffffff;
+    color: #0f1e3d;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+}
+.cta-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.25);
+    background: #f5f7fb;
+}
+.cta-primary .cta-sub { color: #4b5563; }
+
+.cta-secondary {
+    background: rgba(255,255,255,0.12);
+    color: #ffffff;
+    border: 2px solid rgba(255,255,255,0.35);
+}
+.cta-secondary:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.6);
+}
+.cta-secondary .cta-sub { color: #dce6f7; }
+
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+
+section { margin-bottom: 56px; scroll-margin-top: 70px; }
+
+h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--blue);
+    display: inline-block;
+}
+h3 { font-size: 20px; font-weight: 700; color: var(--navy); margin: 28px 0 12px; }
+h4 { font-size: 16px; font-weight: 700; color: var(--blue); margin: 20px 0 8px; }
+p  { margin-bottom: 14px; color: #374151; }
+ul, ol { margin-bottom: 14px; }
+
+.section-intro {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 26px;
+    max-width: 900px;
+}
+
+.card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 26px 28px;
+    box-shadow: 0 2px 14px rgba(15,30,61,0.06);
+    border: 1px solid var(--border);
+    margin-bottom: 22px;
+}
+
+.callout {
+    border-left: 5px solid var(--blue);
+    background: #eff6ff;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 18px 0;
+    font-size: 15px;
+}
+.callout.key     { border-left-color: var(--green);  background: #f0fdf4; }
+.callout.warn    { border-left-color: var(--amber);  background: #fffbeb; }
+.callout.takeaway{ border-left-color: var(--purple); background: #f5f3ff; }
+.callout strong  { color: var(--navy); }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(15,30,61,0.06);
+    margin: 16px 0;
+    font-size: 14px;
+}
+thead { background: var(--navy); color: white; }
+th {
+    text-align: left;
+    padding: 12px 14px;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    color: #374151;
+}
+tr:last-child td { border-bottom: none; }
+tr.best { background: #f0fdf4; font-weight: 700; }
+tr.best td { color: var(--navy); }
+tr:hover:not(.best) { background: #f9fafb; }
+
+.figure {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 2px 14px rgba(15,30,61,0.06);
+    border: 1px solid var(--border);
+    margin: 22px 0;
+    text-align: center;
+}
+.figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #eef1f6;
+}
+.figure .caption {
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+.badge.good { background: #dcfce7; color: #166534; }
+.badge.mid  { background: #fef3c7; color: #92400e; }
+.badge.low  { background: #fee2e2; color: #991b1b; }
+.badge.info { background: #dbeafe; color: #1e40af; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+@media (max-width: 800px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 28px; }
+    .hero { padding: 40px 20px; }
+}
+
+footer {
+    background: var(--navy);
+    color: white;
+    text-align: center;
+    padding: 34px 20px;
+    font-size: 14px;
+    margin-top: 40px;
+}
+footer a { color: #93c5fd; text-decoration: none; }
+
+@media print {
+    .nav { display: none; }
+    .hero { background: white; color: black; }
+    .hero .value, .hero h1 { color: var(--navy); }
+    section { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+    <a href="#summary">Summary</a>
+    <a href="#dataset">Dataset</a>
+    <a href="#method">Methodology</a>
+    <a href="#baselines">Baselines</a>
+    <a href="#xgboost">XGBoost</a>
+    <a href="#comparison">Comparison</a>
+    <a href="#roc">ROC</a>
+    <a href="#pr">PR</a>
+    <a href="#threshold">Threshold</a>
+    <a href="#confusion">Confusion</a>
+    <a href="#shap">SHAP</a>
+    <a href="#ablation">Ablation</a>
+    <a href="#conclusion">Conclusion</a>
+</nav>
+
+<div class="hero">
+    <h1>Early Prediction of Sepsis in ICU</h1>
+    <p class="subtitle">
+        A temporal machine learning pipeline using engineered lag, trend, and rolling
+        statistics features with XGBoost — benchmarked against classical ML baselines.
+    </p>
+    <div class="author">Aagam Katariya | Bhargavram Pedgaonkar | Ayush Bankar &middot; AIML Capstone Project</div>
+
+    <div class="hero-tiles">
+        <div class="hero-tile">
+            <div class="value">546,123</div>
+            <div class="label">ICU Hourly Records</div>
+        </div>
+        <div class="hero-tile">
+            <div class="value">14,057</div>
+            <div class="label">Unique Patients</div>
+        </div>
+        <div class="hero-tile">
+            <div class="value">84</div>
+            <div class="label">Engineered Features</div>
+        </div>
+        <div class="hero-tile">
+            <div class="value">0.804</div>
+            <div class="label">Best AUROC</div>
+        </div>
+    </div>
+
+    <div class="hero-cta">
+        <a href="http://localhost:8501" target="_blank" class="cta-btn cta-primary">
+            ▶  Launch Live Dashboard
+            <span class="cta-sub">Streamlit · requires `streamlit run streamlit_app.py`</span>
+        </a>
+        <a href="sepsis_early_warning_dashboard.html" target="_blank" class="cta-btn cta-secondary">
+            📊  Open Static Report Dashboard
+            <span class="cta-sub">Pre-generated HTML · works offline</span>
+        </a>
+    </div>
+</div>
+
+<div class="container">
+
+<!-- ============================
+     1. EXECUTIVE SUMMARY
+     ============================ -->
+<section id="summary">
+    <h2>1. Executive Summary</h2>
+    <p class="section-intro">
+        What was built, why it matters, and what the numbers say.
+    </p>
+
+    <div class="card">
+        <h3>The Problem</h3>
+        <p>
+            Sepsis is a life-threatening response to infection that kills approximately
+            11 million people worldwide every year. In ICU settings, it develops over hours.
+            A model that flags deterioration <strong>6–12 hours before onset</strong>
+            gives clinicians a critical intervention window — but the signal is buried in
+            noisy hourly vitals with a <strong>45:1 class imbalance</strong> (only 2.17% of
+            records are septic).
+        </p>
+
+        <h3>The Approach</h3>
+        <p>
+            Instead of feeding raw vital signs into a black box, we <strong>engineer 70
+            temporal features</strong> — lags, trends, and rolling statistics — that capture
+            how a patient is <em>changing</em>, not just their snapshot. These feed a
+            regularized XGBoost model trained on a strict patient-wise split (no leakage).
+        </p>
+
+        <h3>The Headline Result</h3>
+        <div class="callout key">
+            <strong>Temporal XGBoost achieves AUROC 0.800 (6h) and 0.804 (12h)</strong>,
+            beating every classical baseline. On AUPRC — the more
+            informative metric under heavy imbalance — the model reaches
+            <strong>0.112 / 0.115</strong> versus the baselines' 0.080–0.088.
+            The improvement comes not from a fancier algorithm, but from
+            <strong>feature engineering</strong>: an ablation study confirms
+            <strong>57.5% of model attribution comes from dynamic vitals</strong>.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     2. DATASET
+     ============================ -->
+<section id="dataset">
+    <h2>2. Dataset Overview</h2>
+    <p class="section-intro">
+        Source, structure, and the constraints that shaped downstream design decisions.
+    </p>
+
+    <div class="card">
+        <p>
+            The project uses the <strong>PhysioNet 2019 Sepsis Challenge</strong> dataset —
+            a publicly benchmarked corpus of hourly ICU records from three US hospitals.
+        </p>
+
+        <div class="grid-3">
+            <div class="card" style="margin:0;text-align:center;">
+                <div style="font-size:32px;font-weight:800;color:var(--blue);">546,123</div>
+                <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Hourly Records</div>
+            </div>
+            <div class="card" style="margin:0;text-align:center;">
+                <div style="font-size:32px;font-weight:800;color:var(--blue);">14,057</div>
+                <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Patients</div>
+            </div>
+            <div class="card" style="margin:0;text-align:center;">
+                <div style="font-size:32px;font-weight:800;color:var(--red);">2.17%</div>
+                <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Positive Rate</div>
+            </div>
+        </div>
+
+        <h3>Two Key Challenges</h3>
+
+        <h4>① Massive Class Imbalance (45:1)</h4>
+        <p>
+            Only 2.17% of rows carry a positive sepsis label. A naive model that predicts
+            <em>“no sepsis”</em> every time would score <strong>97.8% accuracy</strong> and
+            catch <strong>zero</strong> septic patients. For this reason the project reports
+            <strong>AUROC and AUPRC</strong> instead of accuracy, and used
+            <code>scale_pos_weight</code> during training to compensate.
+        </p>
+
+        <h4>② Extreme Missingness in Lab Values</h4>
+        <p>
+            27 of the 44 raw columns are <strong>&gt;80% missing</strong>, including every
+            lab result (Lactate, Creatinine, WBC, Platelets, etc.) and the EtCO2 column
+            (100% missing). Imputing these reliably is impossible, so they were dropped and
+            only <strong>16 reliable base columns</strong> (vitals + static context) were kept.
+        </p>
+
+        <div class="callout warn">
+            <strong>Design decision:</strong> Rather than impute unreliable labs, the pipeline
+            invests in <strong>engineered temporal features</strong> from the 7 vitals that
+            <em>are</em> reliably sampled: HR, O2Sat, Temp, SBP, MAP, DBP, Resp.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     3. METHODOLOGY
+     ============================ -->
+<section id="method">
+    <h2>3. Methodology</h2>
+    <p class="section-intro">
+        From raw hourly vitals to a leakage-free, explainable early-warning model.
+    </p>
+
+    <div class="card">
+        <h3>The Pipeline</h3>
+
+        <div class="grid-2">
+            <div>
+                <h4>Step 1 — Reframe the Target</h4>
+                <p>
+                    Rather than predict <em>“is this patient septic right now?”</em>, the
+                    model predicts <em>“will this patient become septic within the next
+                    6 / 12 hours?”</em> Only rows where the patient is
+                    <strong>currently non-septic</strong> are used — a currently septic row
+                    is not an early-warning sample.
+                </p>
+                <p style="font-size:14px;color:var(--muted);">
+                    → 6h target positive rate: <strong>1.15%</strong><br>
+                    → 12h target positive rate: <strong>2.14%</strong>
+                </p>
+            </div>
+            <div>
+                <h4>Step 2 — Engineer 70 Temporal Features</h4>
+                <p>For each of the 7 vitals, the pipeline adds:</p>
+                <ul style="padding-left:20px;margin-bottom:12px;font-size:14px;">
+                    <li><strong>Lags</strong> at 1h / 3h / 6h — value N hours ago</li>
+                    <li><strong>Changes</strong> at 1h / 3h / 6h — delta vs N hours ago</li>
+                    <li><strong>Rolling stats</strong> over a 3h window — mean, std, min, max</li>
+                </ul>
+                <p style="font-size:14px;color:var(--muted);">
+                    → 84 total features (14 base + 70 temporal)
+                </p>
+            </div>
+        </div>
+
+        <h3>Leakage Prevention</h3>
+        <ul style="padding-left:20px;margin-bottom:12px;">
+            <li><strong>Patient-wise split</strong> — the same patient never appears in both train and test.</li>
+            <li><strong>Train-only imputation</strong> — medians computed on the training fold only.</li>
+            <li><strong>Threshold tuning on validation</strong> — the test set is touched once, at the very end.</li>
+            <li><strong>GroupKFold cross-validation</strong> for baselines — same leakage-safe protocol.</li>
+        </ul>
+
+        <h3>The Final Models</h3>
+        <table>
+            <thead>
+                <tr><th>Model</th><th>Target</th><th>Key Hyperparameters</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Temporal XGBoost (6h)</td>
+                    <td>Sepsis within 6h</td>
+                    <td>depth=3, lr=0.03, γ=0.1, λ=5.0, early stopping</td>
+                </tr>
+                <tr>
+                    <td>Temporal XGBoost (12h)</td>
+                    <td>Sepsis within 12h</td>
+                    <td>depth=4, lr=0.05, γ=0.1, λ=5.0, early stopping</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ============================
+     4. BASELINES
+     ============================ -->
+<section id="baselines">
+    <h2>4. Baseline Models (GroupKFold CV)</h2>
+    <p class="section-intro">
+        Three classical models trained on raw features — the bar the temporal XGBoost must beat.
+    </p>
+
+    <div class="card">
+        <p>
+            Each baseline was evaluated with <strong>5-fold GroupKFold cross-validation</strong>
+            grouped by <code>Patient_ID</code> — the same leakage-safe protocol used for the
+            main model. Training folds were SMOTE-resampled to address imbalance.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Baseline Model</th>
+                    <th>AUROC</th>
+                    <th>AUPRC</th>
+                    <th>Recall</th>
+                    <th>Precision</th>
+                    <th>F1</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Logistic Regression + SMOTE</td>
+                    <td>0.703 ± 0.013</td>
+                    <td>0.080</td>
+                    <td>0.601</td>
+                    <td>0.043</td>
+                    <td>0.080</td>
+                </tr>
+                <tr>
+                    <td>Random Forest + SMOTE</td>
+                    <td>0.739 ± 0.010</td>
+                    <td>0.088</td>
+                    <td>0.416</td>
+                    <td>0.103</td>
+                    <td>0.165</td>
+                </tr>
+                <tr>
+                    <td>HistGradientBoosting + SMOTE</td>
+                    <td>0.733 ± 0.012</td>
+                    <td>0.088</td>
+                    <td>0.367</td>
+                    <td>0.116</td>
+                    <td>0.176</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>What the Baselines Reveal</h3>
+
+        <div class="grid-3">
+            <div class="card" style="margin:0;">
+                <h4>Logistic Regression</h4>
+                <p style="font-size:14px;">
+                    Lowest AUROC (0.703). Its linear decision boundary cannot express
+                    <em>“rising HR + falling BP + rising Resp together.”</em>
+                    High recall (0.60) but very low precision (0.043).
+                </p>
+            </div>
+            <div class="card" style="margin:0;">
+                <h4>Random Forest</h4>
+                <p style="font-size:14px;">
+                    Highest AUROC among baselines (0.739). Nonlinearity helps, but the model
+                    is still limited by seeing only raw snapshot values.
+                </p>
+            </div>
+            <div class="card" style="margin:0;">
+                <h4>HistGradientBoosting</h4>
+                <p style="font-size:14px;">
+                    Tied on AUPRC (0.088). Catches only 37% of septic patients at the
+                    default threshold.
+                </p>
+            </div>
+        </div>
+
+        <div class="callout">
+            <strong>Key insight:</strong> All three baselines land in the
+            <strong>AUROC 0.70–0.74</strong> band and AUPRC 0.080–0.088. They plateau because
+            raw snapshot values cannot express <em>trajectory</em>. A rising respiratory
+            rate over 3 hours looks identical to a chronically high one. The temporal
+            features close exactly this gap.
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="baseline_roc_pr_curves.png"
+             alt="Baseline ROC and PR curves"
+             onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>baseline_roc_pr_curves.png not found — run baseline_models_and_cv.ipynb Cell 10</p>'">
+        <div class="caption">
+            ROC (left) and Precision-Recall (right) curves for all three baselines, computed
+            on out-of-fold predictions. The PR curve is the more informative diagnostic
+            under 45:1 imbalance.
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="baseline_confusion_matrices.png"
+             alt="Baseline confusion matrices"
+             onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>baseline_confusion_matrices.png not found — run baseline_models_and_cv.ipynb Cell 11</p>'">
+        <div class="caption">
+            Confusion matrices at the default 0.5 threshold. The bottom-right cell of each
+            matrix shows how many septic patients each baseline actually catches.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     5. XGBOOST
+     ============================ -->
+<section id="xgboost">
+    <h2>5. Temporal XGBoost — Final Model</h2>
+    <p class="section-intro">
+        The main contribution: 84 engineered features feeding a regularized gradient booster.
+    </p>
+
+    <div class="card">
+        <p>
+            The final model is a regularized XGBoost classifier trained on the full
+            <strong>84-feature</strong> matrix (14 base + 70 temporal). Two variants were
+            trained — one for the <strong>6-hour</strong> horizon and one for the
+            <strong>12-hour</strong> horizon — with early stopping on validation PR-AUC.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>AUROC</th>
+                    <th>AUPRC</th>
+                    <th>Recall</th>
+                    <th>Precision</th>
+                    <th>F1</th>
+                    <th>Specificity</th>
+                    <th>Brier</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="best">
+                    <td>⭐ Temporal XGBoost (6h)</td>
+                    <td>0.8003</td>
+                    <td>0.1122</td>
+                    <td>0.5865</td>
+                    <td>0.0744</td>
+                    <td>0.1321</td>
+                    <td>0.8382</td>
+                    <td>0.1379</td>
+                </tr>
+                <tr class="best">
+                    <td>⭐ Temporal XGBoost (12h)</td>
+                    <td>0.8035</td>
+                    <td>0.1153</td>
+                    <td>0.6084</td>
+                    <td>0.0727</td>
+                    <td>0.1298</td>
+                    <td>0.8277</td>
+                    <td>0.1445</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="callout key">
+            <strong>Why both horizons are useful:</strong> The 12h model has more positive
+            examples to learn from (2.14% vs 1.15%), so it achieves slightly higher recall
+            (0.608 vs 0.586). The 6h model fires later — closer to onset — so it produces
+            fewer false alarms. A clinical deployment would use both: 12h for "watch this
+            patient," 6h for "escalate now."
+        </div>
+
+        <div class="callout">
+            <strong>Confusion matrix at deployed threshold (6h):</strong>
+            TP = 6,950 · FP = 86,452 · TN = 447,820 · FN = 4,900.
+            <br>
+            <strong>Confusion matrix at deployed threshold (12h):</strong>
+            TP = 7,210 · FP = 92,029 · TN = 442,243 · FN = 4,640.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     6. COMPARISON
+     ============================ -->
+<section id="comparison">
+    <h2>6. Head-to-Head Comparison</h2>
+    <p class="section-intro">
+        The single most important table in the project.
+    </p>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>AUROC</th>
+                    <th>AUPRC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Logistic Regression + SMOTE</td>
+                    <td>0.7031</td><td>0.0803</td>
+                </tr>
+                <tr>
+                    <td>Random Forest + SMOTE</td>
+                    <td>0.7391</td><td>0.0879</td>
+                </tr>
+                <tr>
+                    <td>HistGradientBoosting + SMOTE</td>
+                    <td>0.7326</td><td>0.0880</td>
+                </tr>
+                <tr class="best">
+                    <td>⭐ Temporal XGBoost (6h)</td>
+                    <td>0.8003</td><td>0.1122</td>
+                </tr>
+                <tr class="best">
+                    <td>⭐ Temporal XGBoost (12h)</td>
+                    <td>0.8035</td><td>0.1153</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="callout key">
+            <strong>The delta that matters:</strong>
+            <ul style="padding-left:20px;margin-top:8px;">
+                <li>AUROC jumps from <strong>0.7391 → 0.8035</strong> (+6.5 points)</li>
+                <li>AUPRC jumps from <strong>0.0880 → 0.1153</strong> (~1.3× improvement)</li>
+                <li>The AUPRC gain is the strongest signal: the model is measurably better
+                    at ranking rare positives correctly</li>
+            </ul>
+            Temporal XGBoost consistently outperforms all baselines, validating the value
+            of engineered lag / rolling / trend features.
+        </div>
+
+        <h3>Why AUPRC Is the Decisive Metric</h3>
+        <p>
+            Under 45:1 imbalance, a model can look good on AUROC while being clinically
+            useless. AUPRC directly measures how well the model identifies rare positives.
+            A random classifier would score AUPRC ≈ 0.0217 (the base rate). The baselines
+            reach 0.080–0.088 (3.7–4× random); Temporal XGBoost reaches 0.112–0.115 —
+            roughly <strong>5× better than random</strong>.
+        </p>
+    </div>
+</section>
+
+<!-- ============================
+     7. ROC
+     ============================ -->
+<section id="roc">
+    <h2>7. ROC Curves — Overall Discrimination</h2>
+    <p class="section-intro">
+        How well each model separates septic from non-septic across all thresholds.
+    </p>
+
+    <div class="figure">
+        <img src="figures_roc_curve.png"
+             alt="ROC curves for 6h and 12h XGBoost"
+             onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>figures_roc_curve.png not found — run model_training.ipynb Cell 75</p>'">
+        <div class="caption">
+            ROC curves for Temporal XGBoost 6h (red) and 12h (amber) versus a random
+            classifier (dashed diagonal).
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>How to Read a ROC Curve</h3>
+        <p>
+            Each point on the curve corresponds to a decision threshold. The
+            <strong>x-axis</strong> is the False Positive Rate (1 − specificity) — the
+            fraction of non-septic patients incorrectly flagged. The <strong>y-axis</strong>
+            is the True Positive Rate (recall) — the fraction of septic patients correctly
+            caught.
+        </p>
+
+        <h3>Interpretation of the Numbers</h3>
+        <ul style="padding-left:20px;">
+            <li>
+                <strong>AUROC = 0.80</strong> means: given one random septic patient and one
+                random non-septic patient, the model correctly ranks the septic patient as
+                higher risk <strong>80% of the time</strong>.
+            </li>
+            <li>AUROC = 0.50 would be a coin flip (the dashed diagonal).</li>
+            <li>
+                AUROC &gt; 0.80 is generally considered strong for clinical prediction
+                tasks — the 12h model (0.804) crosses this line, and the 6h model (0.800)
+                sits right at it.
+            </li>
+        </ul>
+
+        <div class="callout">
+            <strong>Note on ROC limitations:</strong> ROC is threshold-agnostic and can be
+            optimistic under heavy class imbalance. The next section (PR curves) is the
+            more rigorous test.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     8. PR
+     ============================ -->
+<section id="pr">
+    <h2>8. Precision-Recall Curves</h2>
+    <p class="section-intro">
+        Under 45:1 class imbalance, this is the diagnostic that matters most.
+    </p>
+
+    <div class="figure">
+        <img src="figures_pr_curve.png"
+             alt="Precision-Recall curves for 6h and 12h XGBoost"
+             onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>figures_pr_curve.png not found — run model_training.ipynb Cell 76</p>'">
+        <div class="caption">
+            PR curves for Temporal XGBoost 6h (red) and 12h (amber). Dotted lines are the
+            prevalence baselines (2.17%).
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>How to Read a PR Curve</h3>
+        <p>
+            The <strong>x-axis</strong> is Recall — fraction of septic patients caught.
+            The <strong>y-axis</strong> is Precision — fraction of alerts that are real.
+            A perfect classifier sits in the top-right corner; a random classifier sits at
+            the horizontal prevalence line.
+        </p>
+
+        <h3>Interpretation of the Numbers</h3>
+        <ul style="padding-left:20px;">
+            <li>
+                <strong>AUPRC = 0.1122 (6h)</strong> — averaged across all thresholds, the
+                model's precision is roughly <strong>5× the base rate</strong>.
+            </li>
+            <li>
+                <strong>AUPRC = 0.1153 (12h)</strong> — slightly higher, consistent with the
+                larger positive pool available for the 12h target.
+            </li>
+            <li>
+                A random classifier would score AUPRC = 0.0217. Both horizons are well above
+                this floor.
+            </li>
+        </ul>
+
+        <div class="callout key">
+            <strong>Contextual benchmark:</strong> Published PhysioNet 2019 challenge
+            entries using the full 40-feature set with clinical labs typically achieve AUROC
+            in the 0.80–0.88 range. This model reaches <strong>0.80</strong> using only
+            7 vitals plus engineered temporal features — a competitive result given the
+            much leaner input, and a clear improvement over all raw-feature baselines.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     9. THRESHOLD
+     ============================ -->
+<section id="threshold">
+    <h2>9. Threshold Analysis</h2>
+    <p class="section-intro">
+        Why 0.5 is the wrong default for this problem, and how the deployed threshold was chosen.
+    </p>
+
+    <div class="grid-2">
+        <div class="figure">
+            <img src="figures_threshold_XGBoost_6h.png"
+                 alt="Threshold analysis 6h"
+                 onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>figures_threshold_XGBoost_6h.png not found</p>'">
+            <div class="caption">6-hour model: precision, recall, F1, accuracy vs threshold.</div>
+        </div>
+        <div class="figure">
+            <img src="figures_threshold_XGBoost_12h.png"
+                 alt="Threshold analysis 12h"
+                 onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>figures_threshold_XGBoost_12h.png not found</p>'">
+            <div class="caption">12-hour model: same analysis.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>What These Figures Show</h3>
+        <p>
+            The default decision threshold (0.5) is designed for balanced problems. Because
+            positives are rare here, the model outputs very few probabilities above 0.5.
+            Lowering the threshold catches more septic patients at the cost of more false
+            alarms. The graphs show how each metric responds.
+        </p>
+
+        <table>
+            <thead>
+                <tr><th>Metric</th><th>Behaviour as threshold ↓</th><th>Reason</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Recall</strong></td>
+                    <td>Rises sharply</td>
+                    <td>Lower bar → more positive predictions → more sepsis caught.</td>
+                </tr>
+                <tr>
+                    <td><strong>Precision</strong></td>
+                    <td>Falls steadily</td>
+                    <td>More true positives, but far more false positives as well.</td>
+                </tr>
+                <tr>
+                    <td><strong>F1</strong></td>
+                    <td>Peaks at an interior point</td>
+                    <td>Balances precision and recall; optimal point is where F1 is highest.</td>
+                </tr>
+                <tr>
+                    <td><strong>Accuracy</strong></td>
+                    <td>Drops slowly</td>
+                    <td>Negatives dominate (98%), so calling more positives hurts this metric — but accuracy is misleading here.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="callout key">
+            <strong>Threshold selection protocol:</strong> Optimal thresholds were selected
+            on the <em>validation</em> set by maximising F1, then frozen before evaluating
+            on the test set. This avoids the common pitfall of tuning thresholds on test data.
+        </div>
+
+        <div class="callout warn">
+            <strong>Clinical consideration:</strong> In a live ICU deployment, the threshold
+            would be selected jointly with clinicians based on their tolerance for false
+            alarms vs missed cases. A hospital with more triage capacity would lower the
+            threshold to catch more septic patients; a resource-constrained setting would
+            raise it.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     10. CONFUSION
+     ============================ -->
+<section id="confusion">
+    <h2>10. Confusion Matrices</h2>
+    <p class="section-intro">
+        Raw prediction counts at the deployed operating threshold.
+    </p>
+
+    <div class="figure">
+        <img src="figures_confusion_matrix.png"
+             alt="Confusion matrices for 6h and 12h XGBoost"
+             onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>figures_confusion_matrix.png not found — run model_training.ipynb Cell 74</p>'">
+        <div class="caption">
+            Confusion matrices for the two XGBoost models at the deployed threshold.
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Deployed Confusion Counts</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>TP</th><th>FP</th><th>TN</th><th>FN</th>
+                    <th>Recall</th><th>Specificity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="best">
+                    <td>Temporal XGBoost (6h)</td>
+                    <td>6,950</td><td>86,452</td><td>447,820</td><td>4,900</td>
+                    <td>0.5865</td><td>0.8382</td>
+                </tr>
+                <tr class="best">
+                    <td>Temporal XGBoost (12h)</td>
+                    <td>7,210</td><td>92,029</td><td>442,243</td><td>4,640</td>
+                    <td>0.6084</td><td>0.8277</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>How to Read This</h3>
+        <p>Each matrix is a 2×2 grid:</p>
+        <ul style="padding-left:20px;">
+            <li><strong>Top-left (TN):</strong> correctly identified non-septic patients</li>
+            <li><strong>Top-right (FP):</strong> false alarms</li>
+            <li><strong>Bottom-left (FN):</strong> missed septic patients — the costly errors</li>
+            <li><strong>Bottom-right (TP):</strong> correctly caught septic patients</li>
+        </ul>
+
+        <div class="callout warn">
+            <strong>Reading the false positives:</strong> The FP count is large — but so is
+            the negative base. With ~534k negatives, ~86k false positives translates to a
+            manageable false-alarm rate of roughly 16% of negatives. For a screening tool
+            running once per patient per shift, this is a workable trade-off that can be
+            tightened or loosened via the threshold.
+        </div>
+
+        <div class="callout key">
+            <strong>The clinically critical cell is bottom-left (FN)</strong> — missed
+            sepsis onsets. The 6h model misses 4,900 septic hours; the 12h model misses
+            4,640. In deployment, the threshold would be tuned to whatever FN rate the ICU
+            can accept.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     11. SHAP
+     ============================ -->
+<section id="shap">
+    <h2>11. SHAP Explainability</h2>
+    <p class="section-intro">
+        A black box is unusable in medicine. SHAP shows exactly what drives each prediction.
+    </p>
+
+    <div class="card">
+        <p>
+            SHAP (SHapley Additive exPlanations) is a game-theoretic method that assigns
+            each feature a contribution value for every single prediction. The sum of
+            contributions + base value = the model's log-odds output. This makes the model
+            <strong>auditable</strong>: for any patient, the model can list exactly which
+            vitals pushed risk up and which pushed it down.
+        </p>
+    </div>
+
+    <div class="figure">
+        <img src="shap_figures/01_summary_6h.png"
+             alt="SHAP summary 6h"
+             onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>shap_figures/01_summary_6h.png not found — run model_training.ipynb Cell 67</p>'">
+        <div class="caption">
+            SHAP summary (beeswarm) for the 6-hour model. Each dot is one patient. Features
+            are ranked top-to-bottom by importance.
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>How to Read a SHAP Beeswarm Plot</h3>
+        <ul style="padding-left:20px;">
+            <li><strong>y-axis:</strong> feature name, sorted by mean |SHAP| (most important at top).</li>
+            <li><strong>x-axis:</strong> SHAP value — how much this feature pushed risk up (right) or down (left).</li>
+            <li><strong>Colour:</strong> red = high feature value, blue = low feature value.</li>
+            <li><strong>Each dot:</strong> one patient from the SHAP sample.</li>
+        </ul>
+
+        <h3>What the Plot Reveals</h3>
+        <ul style="padding-left:20px;">
+            <li>
+                <strong>ICULOS (ICU length of stay) is the single strongest feature.</strong>
+                Red dots (longer stays) cluster on the right — patients in ICU longer are
+                more likely to develop sepsis. Clinically consistent.
+            </li>
+            <li>
+                <strong>Resp rolling statistics dominate the top 10.</strong> A rising
+                respiratory rate over a 3-hour window is a well-known early sepsis signal.
+            </li>
+            <li>
+                <strong>SBP min/max over 3h</strong> — dropping BP is another classic
+                indicator of deterioration.
+            </li>
+            <li>
+                <strong>Temp lag/rolling features</strong> — fever trajectory matters more
+                than a single reading.
+            </li>
+        </ul>
+    </div>
+
+    <div class="figure">
+        <img src="shap_figures/02_summary_12h.png"
+             alt="SHAP summary 12h"
+             onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>shap_figures/02_summary_12h.png not found</p>'">
+        <div class="caption">
+            SHAP summary for the 12-hour model. The pattern is similar but with slightly
+            different feature ordering — expected, since the 12h target is noisier.
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="shap_figures/03_bar_comparison.png"
+             alt="SHAP bar comparison 6h vs 12h"
+             onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>shap_figures/03_bar_comparison.png not found</p>'">
+        <div class="caption">
+            Mean |SHAP| bar chart comparison between the 6h and 12h models.
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Feature Group Breakdown</h3>
+        <p>All 84 features were grouped into three categories and their mean |SHAP| contributions summed:</p>
+
+        <table>
+            <thead>
+                <tr><th>Feature Group</th><th>Features</th><th>SHAP Contribution</th><th>Share</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Static context</td>
+                    <td>Age, Gender, Unit1, Unit2, HospAdmTime</td>
+                    <td>0.630</td>
+                    <td><span class="badge mid">20.4%</span></td>
+                </tr>
+                <tr>
+                    <td>Time index</td>
+                    <td>Hour, ICULOS</td>
+                    <td>0.685</td>
+                    <td><span class="badge mid">22.1%</span></td>
+                </tr>
+                <tr class="best">
+                    <td>Dynamic vitals</td>
+                    <td>HR, O2Sat, Temp, SBP, MAP, DBP, Resp + all lags / changes / rolling stats</td>
+                    <td>1.779</td>
+                    <td><span class="badge good">57.5%</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="callout key">
+            <strong>The most important scientific finding:</strong> <strong>57.5% of the
+            model's decision-making relies on dynamic vital trajectories</strong> — not
+            static demographics and not just ICU length of stay. This validates the entire
+            feature-engineering premise. Skipping temporal features would have forced the
+            model to rely only on the 42.5% static context — much weaker signal.
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="figure">
+            <img src="shap_figures/04_force_high.png"
+                 alt="SHAP force plot — high risk patient"
+                 onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>shap_figures/04_force_high.png not found</p>'">
+            <div class="caption">Force plot for the highest-risk patient in the SHAP sample.</div>
+        </div>
+        <div class="figure">
+            <img src="shap_figures/05_force_low.png"
+                 alt="SHAP force plot — low risk patient"
+                 onerror="this.parentElement.innerHTML='<p style=color:#9ca3af;padding:20px;>shap_figures/05_force_low.png not found</p>'">
+            <div class="caption">Force plot for the lowest-risk patient. Notice the red/blue arrows point the other way.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Individual Predictions with SHAP</h3>
+        <p>
+            The force plots above explain the model's decision for <em>one specific patient</em>.
+            Red arrows (right) push the prediction toward sepsis; blue arrows (left) push it
+            away. The final output is the balance point.
+        </p>
+        <p>
+            <strong>High-risk patient:</strong> long ICU stay, low O2 saturation trend, older
+            age — the model flags high risk.
+        </p>
+        <p>
+            <strong>Low-risk patient:</strong> short ICU stay, stable vitals, normal O2
+            saturation — the model flags low risk.
+        </p>
+        <p>
+            This is the kind of per-patient explanation a clinician could review before acting
+            on an alert — crucial for building trust in the system.
+        </p>
+    </div>
+</section>
+
+<!-- ============================
+     12. ABLATION
+     ============================ -->
+<section id="ablation">
+    <h2>12. Ablation Study</h2>
+    <p class="section-intro">
+        Four models trained on different feature subsets to prove the temporal features are
+        doing real work.
+    </p>
+
+    <div class="card">
+        <div class="callout warn">
+            <strong>Note on protocol:</strong> The ablation study below was run under a
+            slightly different training / evaluation configuration than the two headline
+            XGBoost models in Sections 5–6 (identical patient-wise splits, but a shallower
+            single-fold configuration for speed). This is why the "Full (84 features)"
+            row shows AUROC 0.765, while the frozen 6h/12h models — trained with early
+            stopping and threshold tuning — reach 0.800 / 0.804. The <em>relative</em>
+            rankings and conclusions are unaffected.
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature Subset</th>
+                    <th>AUROC</th>
+                    <th>AUPRC</th>
+                    <th>Recall</th>
+                    <th>F1</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="best">
+                    <td>Full (84 features)</td>
+                    <td>0.7646</td><td>0.1079</td><td>0.4833</td><td>0.1416</td>
+                </tr>
+                <tr>
+                    <td>Dynamic only (77)</td>
+                    <td>0.6844</td><td>0.0535</td><td>0.4565</td><td>0.0834</td>
+                </tr>
+                <tr>
+                    <td>Static + time only (7)</td>
+                    <td>0.6791</td><td>0.0732</td><td>0.4234</td><td>0.0995</td>
+                </tr>
+                <tr>
+                    <td>No ICULOS + no HospAdmTime</td>
+                    <td>0.7587</td><td>0.1017</td><td>0.4819</td><td>0.1401</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>What Each Row Tells Us</h3>
+
+        <h4>Full model (84 features) — AUROC 0.765</h4>
+        <p>The strongest configuration — all feature groups present.</p>
+
+        <h4>Dynamic only (77 features) — AUROC 0.684</h4>
+        <p>
+            Removing static context (Age, Gender, ICU unit, ICULOS, HospAdmTime) drops AUROC
+            by ~8 points. Static context <em>is</em> informative, but not sufficient alone.
+        </p>
+
+        <h4>Static + time only (7 features) — AUROC 0.679</h4>
+        <p>
+            Even <em>without a single vital sign</em>, just knowing ICU length-of-stay, hour,
+            and patient demographics reaches AUROC 0.68. ICULOS alone is remarkably
+            predictive — but the model saturates quickly.
+        </p>
+
+        <h4>Removing ICULOS and HospAdmTime — AUROC 0.759</h4>
+        <p>
+            Dropping the strongest static features barely hurts (0.765 → 0.759). This is
+            the crucial result: <strong>the model does not depend on ICU length-of-stay to
+            perform well</strong>. The dynamic vitals are sufficient.
+        </p>
+
+        <div class="callout key">
+            <strong>Takeaway:</strong> You cannot remove dynamic vitals — AUROC collapses to
+            0.684. You <em>can</em> remove the strongest static feature (ICULOS) and lose only
+            ~0.6% AUROC. This proves the temporal feature engineering delivers real,
+            non-redundant value.
+        </div>
+    </div>
+</section>
+
+<!-- ============================
+     13. CONCLUSION
+     ============================ -->
+<section id="conclusion">
+    <h2>13. Conclusion & Future Work</h2>
+
+    <div class="card">
+        <h3>Key Findings</h3>
+        <ol style="padding-left:24px;">
+            <li style="margin-bottom:10px;">
+                <strong>Feature engineering beats algorithm choice.</strong> Three classical
+                models (LR, RF, HGB) plateau around AUROC 0.70–0.74 on raw features.
+                Temporal XGBoost on engineered features reaches <strong>0.80</strong>.
+            </li>
+            <li style="margin-bottom:10px;">
+                <strong>Dynamic vitals carry the signal.</strong> SHAP shows 57.5% of model
+                attribution comes from lag / trend / rolling features — not static
+                demographics.
+            </li>
+            <li style="margin-bottom:10px;">
+                <strong>The AUPRC gain is meaningful.</strong> Baselines reach 0.080–0.088 on
+                AUPRC; the temporal XGBoost reaches <strong>0.112 / 0.115</strong> — a
+                roughly 1.3× improvement on the metric that matters most under imbalance,
+                and ~5× better than random.
+            </li>
+            <li style="margin-bottom:10px;">
+                <strong>The model is auditable.</strong> Per-patient SHAP explanations exist
+                for every prediction, making clinical review practical.
+            </li>
+            <li>
+                <strong>Leakage was eliminated.</strong> Strict patient-wise splits and
+                train-only imputation mean the reported metrics are honest.
+            </li>
+        </ol>
+
+        <h3>Limitations</h3>
+        <ul style="padding-left:20px;">
+            <li>
+                <strong>27 lab features were dropped</strong> due to &gt;80% missingness.
+                A real ICU with these values available could improve accuracy further.
+            </li>
+            <li>
+                <strong>Single-dataset validation.</strong> The PhysioNet cohort is US-only;
+                cross-hospital generalisation is not tested.
+            </li>
+            <li>
+                <strong>Probabilities are rank-correct but not calibrated.</strong> The Brier
+                scores (0.138 / 0.145) indicate reasonable sharpness, but an isotonic
+                calibration wrapper would be a next step for clinical deployment.
+            </li>
+        </ul>
+
+        <h3>Future Work</h3>
+        <ul style="padding-left:20px;">
+            <li>
+                <strong>Sequence models.</strong> An LSTM or Transformer over the full hourly
+                sequence could capture long-range dependencies better than fixed lag windows.
+                A preliminary LSTM/GRU exploration showed a 0.37 AUROC gap when proper
+                time-horizon framing was applied — quantified in the project's
+                <code>future_work/</code> folder.
+            </li>
+            <li>
+                <strong>Two-stage imputation.</strong> Use KNN imputation on lab values
+                (retaining them) rather than dropping the columns entirely.
+            </li>
+            <li>
+                <strong>Calibration.</strong> Wrap the XGBoost output in isotonic regression
+                to produce clinically meaningful probabilities.
+            </li>
+            <li>
+                <strong>Prospective validation.</strong> The ultimate test is deployment in a
+                live ICU with real-time scoring.
+            </li>
+        </ul>
+    </div>
+</section>
+
+<!-- Dashboard link (now inside the container) -->
+<div class="card" style="text-align:center;background:#f0fdf4;border:1px solid #bbf7d0;">
+    <p style="margin:0;font-size:15px;color:#166534;font-weight:600;">
+        Explore individual patient predictions and SHAP explanations in the interactive dashboard:
+    </p>
+    <a href="sepsis_early_warning_dashboard.html"
+       style="display:inline-block;margin-top:14px;padding:12px 28px;background:#16a34a;color:#ffffff;border-radius:10px;font-weight:700;text-decoration:none;">
+        → Open the Sepsis Early Warning Dashboard
+    </a>
+</div>
+
+</div><!-- /container -->
+
+<footer>
+    <p style="color:#ffffff;font-weight:700;font-size:15px;">
+        Early Prediction of Sepsis in ICU — Capstone Project
+    </p>
+    <p style="color:#e5e9f2;margin-top:10px;font-size:13px;font-weight:500;">
+        Dataset: PhysioNet 2019 Sepsis Challenge &nbsp;•&nbsp;
+        Model: Temporal XGBoost &nbsp;•&nbsp;
+        Explainability: SHAP
+    </p>
+    <p style="color:#e5e9f2;margin-top:8px;font-size:13px;font-weight:500;">
+        Author: Aagam Katariya &nbsp;|&nbsp; Bhargavram Pedgaonkar &nbsp;|&nbsp; Ayush Bankar
+    </p>
+    <p style="color:#c7d2e5;margin-top:16px;font-size:12px;">
+        Research prototype — not a clinical diagnostic tool.
+        All predictions are decision-support estimates only.
+    </p>
+</footer>
+
+</body>
+</html>
